@@ -21,7 +21,7 @@ export default function SignupPage() {
     return () => subscription.unsubscribe();
   }, [supabase, router]);
 
-  const handleSignUp = async (e) => {
+  const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setMessage("");
