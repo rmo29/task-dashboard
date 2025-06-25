@@ -1,23 +1,22 @@
 "use client";
 import { createClient } from "@/lib/supabase/client";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useState, useEffect, FormEvent } from "react";
 
 export default function SignupPage() {
   const supabase = createClient();
   const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN" && session) {
         router.push("/projects");
       }
     });
-
     return () => subscription.unsubscribe();
   }, [supabase, router]);
 
@@ -29,7 +28,7 @@ export default function SignupPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/projects`, // <-- Set this!
+        emailRedirectTo: `${window.location.origin}/login`, // <-- Change to `/projects` or as needed
       },
     });
     if (error) setError(error.message);
@@ -45,17 +44,52 @@ export default function SignupPage() {
         <p className="text-gray-500 mb-6 text-base text-center font-light">
           Sign up to start managing your projects and tasks with ease.
         </p>
-        <Auth
-          supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
-          view="sign_up"
-          providers={[]}
-          redirectTo={
-            typeof window !== "undefined"
-              ? `${window.location.origin}/auth/callback`
-              : ""
-          }
-        />
+        <form onSubmit={handleSignUp} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Email address
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+          >
+            Sign Up
+          </button>
+        </form>
+        {error && (
+          <div className="mt-4 p-2 text-sm text-red-600 bg-red-50 rounded-md">
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="mt-4 p-2 text-sm text-green-600 bg-green-50 rounded-md">
+            {message}
+          </div>
+        )}
       </div>
     </div>
   );
